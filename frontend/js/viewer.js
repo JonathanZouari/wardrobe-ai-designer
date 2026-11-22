@@ -5,10 +5,10 @@ import { CATALOG, getState, getSelected, select, subscribe } from "./state.js";
 
 const el = document.getElementById("viewer");
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xeceff3);
+// no scene.background: the CSS stage gradient shows through the transparent canvas
 const camera = new THREE.PerspectiveCamera(40, 1, 1, 5000);
 camera.position.set(260, 230, 360);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(devicePixelRatio);
 el.appendChild(renderer.domElement);
 const labels = new CSS2DRenderer();
@@ -16,11 +16,11 @@ labels.domElement.className = "labels";
 el.appendChild(labels.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 100, 0);
-scene.add(new THREE.HemisphereLight(0xffffff, 0x888899, 1.1));
+scene.add(new THREE.HemisphereLight(0xffffff, 0xaaaabb, 2.4));
 const sun = new THREE.DirectionalLight(0xffffff, 1.2);
 sun.position.set(200, 400, 300);
 scene.add(sun);
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), new THREE.MeshStandardMaterial({ color: 0xdfe3e8 }));
+const floor = new THREE.Mesh(new THREE.CircleGeometry(450, 64), new THREE.MeshStandardMaterial({ color: 0xcfd6db, transparent: true, opacity: 0.55 }));
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 

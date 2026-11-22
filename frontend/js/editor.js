@@ -41,8 +41,7 @@ function render(s, sel) {
     <button data-del-item="${sel}">הסר רכיב</button>`
     : cIdx >= 0 ? `<label>רוחב תא (ס״מ)<input type="number" min="0.1" step="any" data-op="set_compartment_width" data-id="${sel}" data-field="width" value="${num(s.compartments[cIdx].width)}"></label>`
     : sel === "doors" ? "<p>דלתות — ערכו בקבוצת ״דלתות״ למעלה.</p>"
-    : "<p class='muted'>לחצו על רכיב במודל או ברשימה.</p>"}
-  <p class="muted">המודל אינו תוכנית ייצור; נדרשת בדיקה מקצועית של נגר.</p>`;
+    : "<p class='muted'>לחצו על רכיב במודל או ברשימה.</p>"}`;
 }
 
 function run(ops) {

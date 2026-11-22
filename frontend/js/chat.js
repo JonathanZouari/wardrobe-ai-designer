@@ -36,6 +36,7 @@ export async function send(text) {
   text = text.trim();
   if (!text || pending) return;
   pending = true;
+  document.getElementById("start")?.remove(); // any first message counts as "started"
   bubble("user", text);
   const wait = bubble("bot", "…");
   try {
