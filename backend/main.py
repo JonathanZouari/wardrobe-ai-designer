@@ -97,7 +97,7 @@ def voice_session(body: VoiceIn):
     r = httpx.post(
         "https://api.openai.com/v1/realtime/client_secrets",
         headers={"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
-        json={"session": session},
+        json={"expires_after": {"anchor": "created_at", "seconds": 120}, "session": session},
         timeout=20,
     )
     if r.status_code != 200:
