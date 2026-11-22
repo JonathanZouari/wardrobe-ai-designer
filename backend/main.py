@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 load_dotenv(Path(__file__).parent / ".env", override=True)  # the shell may hold a stale key
 MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
@@ -48,13 +48,20 @@ TOOLS = [{"type": "function", "function": {
 
 class Msg(BaseModel):
     role: str
-    content: str
+    content: str = Field(max_length=2000)
 
 
 class ChatIn(BaseModel):
-    message: str
-    history: list[Msg] = []
+    message: str = Field(max_length=2000)
+    history: list[Msg] = Field(default=[], max_length=12)
     state: dict
+
+    @field_validator("state")
+    @classmethod
+    def state_small(cls, v):
+        if len(json.dumps(v)) > 20000:
+            raise ValueError("state too large")
+        return v
 
 
 @app.post("/api/chat")
