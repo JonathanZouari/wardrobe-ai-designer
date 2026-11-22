@@ -73,4 +73,5 @@ button:disabled { opacity:.4; cursor:default; }
 input, select, textarea { font:inherit; width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--text); }
 #chat input, #chat textarea { background:var(--ink-2); border-color:var(--ink-line); color:var(--ink-text); }
 #chat ::placeholder { color:var(--ink-muted); }
+#chat #voice-btn.live { background:var(--bad); border-color:var(--bad); color:#fff; }
 .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
