@@ -2,6 +2,7 @@ import { TEMPLATES, setState } from "./state.js";
 import "./viewer.js";
 import "./editor.js";
 import { send } from "./chat.js";
+import "./voice.js";
 import { setShowDoors } from "./viewer.js";
 
 const start = document.getElementById("start");

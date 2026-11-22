@@ -2,7 +2,9 @@ import json
 import os
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
+from fastapi.responses import JSONResponse
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
@@ -16,6 +18,7 @@ client = None  # created lazily so the app starts without a key
 SYSTEM = """You are a wardrobe design assistant for straight, standard wardrobes only (no corner units, no walk-in closets, no other furniture).
 Reply in the user's language (usually Hebrew), briefly. Ask a clarifying question only when the request is truly ambiguous; for small gaps (drawer height, position) pick sensible defaults, propose, and mention them in your reply.
 You never change the design yourself: call propose_changes with structured operations and the user will approve or cancel them.
+Whenever the user asks for any change, you MUST call propose_changes in that same turn. Never only say that you will make a change; if you did not call the tool, nothing happens.
 Do not claim changes were applied. You are not an engineering check; a carpenter must verify before production.
 Units are cm. Item `y` is height from the floor. Use ids from the current state when referring to compartments/items.
 Compartment widths are rebalanced automatically to fill the interior, so you only set a width when the user asks.
@@ -62,6 +65,45 @@ class ChatIn(BaseModel):
         if len(json.dumps(v)) > 20000:
             raise ValueError("state too large")
         return v
+
+
+class VoiceIn(BaseModel):
+    state: dict
+
+    @field_validator("state")
+    @classmethod
+    def state_small(cls, v):
+        if len(json.dumps(v)) > 20000:
+            raise ValueError("state too large")
+        return v
+
+
+@app.post("/api/voice/session")
+def voice_session(body: VoiceIn):
+    """Mint a short-lived Realtime client secret; the browser then connects to OpenAI directly over WebRTC."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(500, "OPENAI_API_KEY is not set (backend/.env)")
+    fn = TOOLS[0]["function"]
+    session = {
+        "type": "realtime",
+        "model": os.getenv("OPENAI_REALTIME_MODEL", "gpt-realtime-2.1"),
+        "instructions": SYSTEM + json.dumps(body.state, ensure_ascii=False) + "\nThis is a spoken conversation: keep replies to one or two short sentences.",
+        "audio": {
+            "output": {"voice": "marin"},
+            "input": {"transcription": {"model": "gpt-4o-mini-transcribe"}},
+        },
+        "tools": [{"type": "function", "name": fn["name"], "description": fn["description"], "parameters": fn["parameters"]}],
+        "tool_choice": "auto",
+    }
+    r = httpx.post(
+        "https://api.openai.com/v1/realtime/client_secrets",
+        headers={"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
+        json={"expires_after": {"anchor": "created_at", "seconds": 120}, "session": session},
+        timeout=20,
+    )
+    if r.status_code != 200:
+        raise HTTPException(502, f"OpenAI error: {r.text[:300]}")
+    return JSONResponse({"value": r.json()["value"]}, headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/chat")
