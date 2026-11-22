@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wardrobe AI Designer</title>
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<main>
+  <section id="chat" aria-label="צ'אט AI">
+    <header>סוכן עיצוב</header>
+    <div id="start">
+      <p>איך תרצו להתחיל?</p>
+      <button id="start-chat">שיחה עם הסוכן</button>
+      <form id="start-desc-form">
+        <textarea id="start-desc" rows="3" placeholder="תארו את הארון: למשל ארון 2.4 מ' עם 3 תאים ודלתות הזזה"></textarea>
+        <button>שלח תיאור</button>
+      </form>
+      <div class="row">
+        <span>או התחילו ממודל:</span>
+        <button data-tpl="basic">בסיסי</button>
+        <button data-tpl="sliding">הזזה</button>
+        <button data-tpl="drawers">מגירות</button>
+      </div>
+    </div>
+    <div id="log"></div>
+    <form id="chat-form"><input id="chat-input" autocomplete="off" placeholder="כתבו בקשה…"><button>שלח</button></form>
+  </section>
+  <section id="center">
+    <div id="viewer"></div>
+    <label class="toggle"><input type="checkbox" id="doors-toggle" checked> הצג דלתות</label>
+  </section>
+  <aside id="side"><header>מאפיינים</header><div id="err"></div><div id="props"></div></aside>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
