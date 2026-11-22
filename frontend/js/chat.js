@@ -7,7 +7,7 @@ const input = document.getElementById("chat-input");
 const history = [];
 let pending = false;
 
-function bubble(cls, text) {
+export function bubble(cls, text) {
   const d = document.createElement("div");
   d.className = `msg ${cls}`;
   d.textContent = text;
@@ -16,7 +16,7 @@ function bubble(cls, text) {
   return d;
 }
 
-function proposal(ops) {
+export function proposal(ops) {
   const before = getState();
   const card = document.createElement("div");
   card.className = "msg proposal";

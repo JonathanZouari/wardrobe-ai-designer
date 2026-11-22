@@ -2,7 +2,9 @@ import json
 import os
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
+from fastapi.responses import JSONResponse
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
@@ -62,6 +64,45 @@ class ChatIn(BaseModel):
         if len(json.dumps(v)) > 20000:
             raise ValueError("state too large")
         return v
+
+
+class VoiceIn(BaseModel):
+    state: dict
+
+    @field_validator("state")
+    @classmethod
+    def state_small(cls, v):
+        if len(json.dumps(v)) > 20000:
+            raise ValueError("state too large")
+        return v
+
+
+@app.post("/api/voice/session")
+def voice_session(body: VoiceIn):
+    """Mint a short-lived Realtime client secret; the browser then connects to OpenAI directly over WebRTC."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(500, "OPENAI_API_KEY is not set (backend/.env)")
+    fn = TOOLS[0]["function"]
+    session = {
+        "type": "realtime",
+        "model": os.getenv("OPENAI_REALTIME_MODEL", "gpt-realtime-2.1"),
+        "instructions": SYSTEM + json.dumps(body.state, ensure_ascii=False) + "\nThis is a spoken conversation: keep replies to one or two short sentences.",
+        "audio": {
+            "output": {"voice": "marin"},
+            "input": {"transcription": {"model": "gpt-4o-mini-transcribe"}},
+        },
+        "tools": [{"type": "function", "name": fn["name"], "description": fn["description"], "parameters": fn["parameters"]}],
+        "tool_choice": "auto",
+    }
+    r = httpx.post(
+        "https://api.openai.com/v1/realtime/client_secrets",
+        headers={"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
+        json={"session": session},
+        timeout=20,
+    )
+    if r.status_code != 200:
+        raise HTTPException(502, f"OpenAI error: {r.text[:300]}")
+    return JSONResponse({"value": r.json()["value"]}, headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/chat")
